@@ -60,5 +60,13 @@ console.log(listAvgTraningPoints);
 console.log("Sinh vien dat ong vang : ");
 console.log(listAvgPoints.at(0));
 
+const max = listAvgPoints.at(0).avgPoint;
+
+
+const studentsMaxAvgPoint = listAvgPoints.filter(student => student.avgPoint === max);
+
+console.log("Sinh vien co diem so cao nhat cung la : ");
+console.log(studentsMaxAvgPoint);
+
 
 
