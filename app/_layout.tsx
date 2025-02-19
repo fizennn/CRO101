@@ -1,39 +1,64 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
 import 'react-native-reanimated';
+import { NavigationContainer } from '@react-navigation/native'; // Thêm NavigationContainer
+import { createDrawerNavigator } from '@react-navigation/drawer';
+import { MaterialIcons } from '@expo/vector-icons'; // Import icon
 
-import { useColorScheme } from '@/hooks/useColorScheme';
+import BT1 from './bai1';
+import Chat from './chat';
+import Setting from './setting';
+import Article from './article';
+import CustomDrawer from './CustomDrawer'; // Import Custom Drawer
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
+const Drawer = createDrawerNavigator();
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
-
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
-
-  if (!loaded) {
-    return null;
-  }
-
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+      <Drawer.Navigator
+        initialRouteName="Home"
+        drawerContent={(props) => <CustomDrawer {...props} />}
+        screenOptions={{
+          drawerActiveTintColor: 'blue',
+          drawerInactiveTintColor: 'gray',
+          drawerLabelStyle: { fontSize: 16 },
+        }}
+      >
+        {/* Thêm icon cho từng mục */}
+        <Drawer.Screen
+          name="Home"
+          component={BT1}
+          options={{
+            drawerIcon: ({ color, size }) => (
+              <MaterialIcons name="home" size={size} color={color} />
+            ),
+          }}
+        />
+        <Drawer.Screen
+          name="Chat"
+          component={Chat}
+          options={{
+            drawerIcon: ({ color, size }) => (
+              <MaterialIcons name="chat" size={size} color={color} />
+            ),
+          }}
+        />
+        <Drawer.Screen
+          name="Setting"
+          component={Setting}
+          options={{
+            drawerIcon: ({ color, size }) => (
+              <MaterialIcons name="settings" size={size} color={color} />
+            ),
+          }}
+        />
+        <Drawer.Screen
+          name="Article"
+          component={Article}
+          options={{
+            drawerIcon: ({ color, size }) => (
+              <MaterialIcons name="article" size={size} color={color} />
+            ),
+          }}
+        />
+      </Drawer.Navigator>
   );
 }
