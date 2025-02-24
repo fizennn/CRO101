@@ -103,9 +103,9 @@ const DetailsItem = ( {route, navigation} ) => {
           navigation.getParent()?.setOptions({
             tabBarStyle: { display: 'block', backgroundColor: '#0C0F14', borderTopWidth: 0  }
           });
-          navigation.reset({
+          navigation.getParent().reset({
             index: 0,
-            routes: [{ name: 'HomeScreen' }],
+            routes: [{ name: 'TrangChuLayout' }],
           });
           }}>
           <Image

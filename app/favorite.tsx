@@ -14,7 +14,7 @@ import { StatusBar } from 'expo-status-bar';
 import { BlurView } from 'expo-blur';
 import { useFocusEffect } from '@react-navigation/native';
 
-const favorite = () => {
+const favorite = ({navigation}) => {
   const [favorites, setFavorites] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -22,7 +22,17 @@ const favorite = () => {
 
   useFocusEffect(() => {
     fetchFavorites();
+    
   });
+
+  useEffect(() => {
+    navigation.setOptions({
+      tabBarStyle: { display: 'flex', backgroundColor: '#0C0F14', borderTopWidth: 0 },
+    });
+  }, []);
+
+  
+  
 
   const fetchFavorites = async () => {
     try {

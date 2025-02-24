@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, FlatList } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native'; // Sử dụng từ @react-navigation/native
 
 const cart = ({ navigation }) => {
   const [orders, setOrders] = useState([]);
@@ -10,37 +10,25 @@ const cart = ({ navigation }) => {
   const [newList, setNewList] = useState([]);
   const [totalPrice, setTotalPrice] = useState(0);
 
-  useFocusEffect(() => {
-    navigation.setOptions({
-      tabBarStyle: { display: 'flex', backgroundColor: '#0C0F14', borderTopWidth: 0 },
-    });
-    const fetchUsername = async () => {
-      const value = await AsyncStorage.getItem('username');
-      if (value) {
-        setUsername(value);
-      }
-    };
-    fetchUsername();
-  });
-
-  useEffect(() => {
-    if (username) {
-      fetchOrders();
+  const fetchUsername = useCallback(async () => {
+    const value = await AsyncStorage.getItem('username');
+    if (value) {
+      setUsername(value);
     }
-  }, [username]);
+  }, []);
 
-  const fetchOrders = async () => {
+  
+
+  const fetchOrders = useCallback(async () => {
     try {
-      // Lấy danh sách đơn hàng
       const response = await axios.get(`https://working-tabbie-fizennn-addbb4df.koyeb.app/api/cart/${username}`);
       const orders = response.data;
       setOrders(orders);
 
-      // Tạo một mảng các promise để gọi API song song
       const productPromises = orders.map(async (product) => {
         try {
           const productResponse = await axios.get(`https://working-tabbie-fizennn-addbb4df.koyeb.app/api/getCafeById/${product.idProduct}`);
-              return {
+          return {
             ten: productResponse.data.data.ten,
             avatar: productResponse.data.data.anh,
             mota: productResponse.data.data.diKem,
@@ -55,23 +43,44 @@ const cart = ({ navigation }) => {
         }
       });
 
-      // Đợi tất cả các promise hoàn thành
       const updatedList = (await Promise.all(productPromises)).filter((item) => item !== null);
-
-      // Cập nhật state newList một lần duy nhất
       setNewList(updatedList);
-      console.log("Updated newList:", updatedList); // Log để kiểm tra dữ liệu
+      console.log("Updated newList:", updatedList);
       setTotalPrice(updatedList.reduce((total, product) => total + product.gia * product.count, 0));
     } catch (error) {
       console.error('Lỗi khi lấy danh sách đơn hàng:', error);
     }
-  };
+  }, [username]);
+
+  useFocusEffect(
+    useCallback(() => {
+      navigation.setOptions({
+        tabBarStyle: { display: 'flex', backgroundColor: '#0C0F14', borderTopWidth: 0 },
+      });
+      fetchUsername();
+      fetchUsername();
+      refreshCart();
+      console.log("Refreshing");
+    }, [fetchUsername, navigation])
+  );
+
+  const refreshCart = useCallback(async () => {
+    if (username) {
+      await fetchOrders();
+    }
+  }, [username, fetchOrders]);
+
+  useEffect(() => {
+    if (username) {
+      fetchOrders();
+    }
+  }, [username, fetchOrders]);
 
   const renderItem = ({ item }) => {
     return (
       <View style={styles.card}>
         <Image
-          source={{ uri: item.avatar }} // Sửa thành { uri: item.avatar }
+          source={{ uri: item.avatar }}
           style={styles.image}
           onError={(e) => console.log("Lỗi tải ảnh:", e.nativeEvent.error)}
         />
@@ -99,31 +108,27 @@ const cart = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-              <Image source={require('../assets/images/nav.png')} />
-              <Text style={styles.title}>Cart</Text>
-              <Image source={require('../assets/images/user.png')} />
-            </View>
-      <FlatList
-        data={newList} // Sử dụng newList thay vì orders
-        renderItem={renderItem}
-        keyExtractor={(item, index) => index.toString()} // Sử dụng index làm key nếu item không có id
-      />
-
-    <View style={styles1.container}>
-      {/* Phần hiển thị giá */}
-      <View style={styles1.priceContainer}>
-        <Text style={styles1.label}>Total Price</Text>
-        <View style={styles1.priceRow}>
-          <Text style={styles1.dollarSign}>$</Text>
-          <Text style={styles1.price}>{totalPrice}</Text>
-        </View>
+        <Image source={require('../assets/images/nav.png')} />
+        <Text style={styles.title}>Cart</Text>
+        <Image source={require('../assets/images/user.png')} />
       </View>
-
-      {/* Nút Thanh Toán */}
-      <TouchableOpacity style={styles1.payButton}>
-        <Text style={styles1.payText}>Pay</Text>
-      </TouchableOpacity>
-    </View>
+      <FlatList
+        data={newList}
+        renderItem={renderItem}
+        keyExtractor={(item, index) => index.toString()}
+      />
+      <View style={styles1.container}>
+        <View style={styles1.priceContainer}>
+          <Text style={styles1.label}>Total Price</Text>
+          <View style={styles1.priceRow}>
+            <Text style={styles1.dollarSign}>$</Text>
+            <Text style={styles1.price}>{totalPrice}</Text>
+          </View>
+        </View>
+        <TouchableOpacity style={styles1.payButton}>
+          <Text style={styles1.payText}>Pay</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -133,14 +138,14 @@ const styles1 = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: "#0C0F14", // Màu nền đen
+    backgroundColor: "#0C0F14",
     paddingHorizontal: 10,
   },
   priceContainer: {
     flexDirection: "column",
   },
   label: {
-    color: "#A0A0A0", // Màu chữ xám
+    color: "#A0A0A0",
     fontSize: 14,
   },
   priceRow: {
@@ -148,23 +153,23 @@ const styles1 = StyleSheet.create({
     alignItems: "center",
   },
   dollarSign: {
-    color: "#f59042", // Màu cam nâu
+    color: "#f59042",
     fontSize: 20,
     fontWeight: "bold",
   },
   price: {
-    color: "#FFFFFF", // Màu chữ trắng
+    color: "#FFFFFF",
     fontSize: 20,
     fontWeight: "bold",
   },
   payButton: {
-    backgroundColor: "#f59042", // Màu cam nâu giống trong ảnh
+    backgroundColor: "#f59042",
     paddingVertical: 12,
     paddingHorizontal: 100,
-    borderRadius: 20, // Bo góc cho nút
+    borderRadius: 20,
   },
   payText: {
-    color: "#FFFFFF", // Chữ trắng
+    color: "#FFFFFF",
     fontSize: 22,
     fontWeight: "bold",
   },
@@ -190,7 +195,7 @@ const styles = StyleSheet.create({
     width: 140,
     height: 140,
     borderRadius: 10,
-    backgroundColor: '#ccc', // Background tránh trường hợp ảnh lỗi
+    backgroundColor: '#ccc',
   },
   details: {
     flex: 1,
@@ -228,7 +233,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 10,
-    justifyContent:'space-between',
+    justifyContent: 'space-between',
   },
   button: {
     display: 'flex',
@@ -261,7 +266,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
-
 });
 
 export default cart;

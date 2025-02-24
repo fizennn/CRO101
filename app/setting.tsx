@@ -32,10 +32,10 @@ const SettingsScreen = ({ navigation }) => {
                     navigation.getParent()?.setOptions({
                         tabBarStyle: { display: 'block', backgroundColor: '#0C0F14', borderTopWidth: 0 }
                     });
-                    navigation.reset({
+                    navigation.getParent().reset({
                         index: 0,
-                        routes: [{ name: 'HomeScreen' }],
-                    });
+                        routes: [{ name: 'TrangChuLayout' }],
+                      });
                 }}>
                     <Image source={require('../assets/images/back.png')} />
                 </TouchableOpacity>
@@ -45,11 +45,11 @@ const SettingsScreen = ({ navigation }) => {
 
             {/* Danh sách menu */}
             <ScrollView>
-                <TouchableOpacity style={styles.menuItem}>
+                <TouchableOpacity style={styles.menuItem} onPress={()=>{navigation.navigate('CafeList')}}>
                     <View style={styles.iconWrapper}>
                         <Icon name="history" size={22} color="#d68c44" />
                     </View>
-                    <Text style={styles.menuText}>History</Text>
+                    <Text style={styles.menuText}>List Cafe</Text>
                     <Icon name="chevron-right" size={18} color="#888" style={styles.arrow} />
                 </TouchableOpacity>
 

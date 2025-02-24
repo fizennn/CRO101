@@ -19,6 +19,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import DetailsItem from './detailsItem';
 import SettingsScreen from './setting';
 import ProfileScreen from './profile';
+import CafeList from './cafelist';
 
 const Stack = createStackNavigator();
 
@@ -27,6 +28,7 @@ const home = ({ navigation }) => {
   const [isTabBarVisible, setIsTabBarVisible] = useState(true);
   const [caffeeList, setCaffeeList] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState('All');
 
   // Hàm gọi API để lấy dữ liệu
   const fetchCafeData = async () => {
@@ -122,6 +124,39 @@ const home = ({ navigation }) => {
     );
   }
 
+  // Lọc danh sách cafe dựa trên category được chọn
+  const filteredCafeList = selectedCategory === 'All' 
+    ? caffeeList 
+    : caffeeList.filter(item => item.ten === selectedCategory);
+
+  // Hàm render mỗi item trong danh sách category
+  const renderCategoryItem = (category) => (
+    <TouchableOpacity 
+      key={category} 
+      style={[
+        styles.categoryItem, 
+        selectedCategory === category && styles.selectedCategoryItem
+      ]} 
+      onPress={() => setSelectedCategory(category)}
+    >
+      <Text style={[
+        styles.categoryText, 
+        selectedCategory === category && styles.selectedCategoryText
+      ]}>
+        {category}
+      </Text>
+    </TouchableOpacity>
+  );
+
+  // Lọc danh sách cafe theo danh mục đã chọn
+  const filteredCafes = selectedCategory === 'All'
+    ? caffeeList
+    : caffeeList.filter((item) => item.loai === selectedCategory);
+
+  const handleCategoryPress = (category) => {
+    setSelectedCategory(category);
+  };
+
   return (
     <ScrollView style={styles.container}>
       <StatusBar translucent={true} backgroundColor="transparent" style="light" />
@@ -149,18 +184,33 @@ const home = ({ navigation }) => {
         </View>
 
         {/* Categories */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoriesContainer}>
-          {Category.map((category, index) => (
-            <TouchableOpacity key={index} style={styles.categoryItem}>
-              <Text style={styles.categoryText}>{category}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={[styles.categoriesContainer,{marginBottom:-20}]}>
+  {Category.map((category, index) => (
+    <TouchableOpacity
+      key={index}
+      style={[
+        styles.categoryItem,
+        selectedCategory === category && { display: 'flex', flexDirection: 'column' }
+      ]}
+      onPress={() => handleCategoryPress(category)}
+    >
+      <Text style={[
+        styles.categoryText,
+        selectedCategory === category && { color: '#D17842', fontWeight: 'bold' },
+      ]}>
+        {category}
+      </Text>
+      {selectedCategory === category && (
+        <Text style={{ fontSize: 40, textAlign: 'center', marginTop: -35 ,color: '#D17842'}}>.</Text>
+      )}
+    </TouchableOpacity>
+  ))}
+</ScrollView>
 
         {/* Coffee List */}
         <Text style={[styles.title, { marginTop: 20 }]}>Coffee</Text>
         <FlatList
-          data={caffeeList}
+          data={filteredCafeList}
           keyExtractor={(item) => item._id.toString()}
           renderItem={renderProductItem}
           horizontal
@@ -168,86 +218,66 @@ const home = ({ navigation }) => {
           contentContainerStyle={styles.productList}
         />
 
+        <Text style={[styles.title,{marginTop:0}]}>Coffee beans</Text>
 
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.productList,{marginBottom:50}]}>
+          <TouchableOpacity style={styles.productCard} onPress={()=>{toggleTabBar(); navigation.navigate('Detail')}}>
+            <View style={{borderRadius:12,overflow: 'hidden',}}>
+              <Image
+                source={{uri: 'https://s3-alpha-sig.figma.com/img/0ed4/77b7/0d5052984d7848c0feaaf073901abb7d?Expires=1741564800&Key-Pair-Id=APKAQ4GOSFWCW27IBOMQ&Signature=K~m8i~CiPpb9vILExLfu74xTGwoO8hO4TLLYNFCCcBrcHiipUfuCtP~Cx8zYnQLuaNMTReWkJCJK-X1OSjgkWBMUzh7nGVCDcrClwlvz9dcnVGOGicZCb6bPdKL29l448G51DaVS5fO6MtEgAh1s4GDPHmF34Gb4NuENxBeha4~YRIQuCvYaLOqPSxJjHAIvNIYrdnrGOFFAxH1xApFCwdK6eWWBkGcOHCb-diKMM2ec1JfDpKsavEJh6N20W4inZGhTDPupsYQy-8cYAYSIb1rRYfRRIHPOfWB6ELGo7PxT59PnY7vPfwk6TF3ITHyQBSspaKhOV6niQKGWgkFxWg__'}}
+                style={styles.productImage}
+              />
+            </View>
+            <Text style={styles.productName}>Robusta Beans</Text>
+            <Text style={styles.productDescription}>Medium Roasted</Text>
+            <View style={styles.productFooter}>
+              <Text>
+              <Text style={{color:'#D17842'}}>$ </Text><Text style={styles.productPrice}>4.20</Text>
+              </Text>
+              <TouchableOpacity style={styles.addButton}>
+                <Image source={require('../assets/images/add.png')}/>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
 
-<Text style={[styles.title,{marginTop:0}]}>Coffee beans</Text>
+          <TouchableOpacity style={styles.productCard} onPress={()=>{toggleTabBar(); navigation.navigate('Detail')}}>
+            <View style={{borderRadius:12,overflow: 'hidden',}}>
+              <Image
+                source={{uri: 'https://s3-alpha-sig.figma.com/img/0ed4/77b7/0d5052984d7848c0feaaf073901abb7d?Expires=1741564800&Key-Pair-Id=APKAQ4GOSFWCW27IBOMQ&Signature=K~m8i~CiPpb9vILExLfu74xTGwoO8hO4TLLYNFCCcBrcHiipUfuCtP~Cx8zYnQLuaNMTReWkJCJK-X1OSjgkWBMUzh7nGVCDcrClwlvz9dcnVGOGicZCb6bPdKL29l448G51DaVS5fO6MtEgAh1s4GDPHmF34Gb4NuENxBeha4~YRIQuCvYaLOqPSxJjHAIvNIYrdnrGOFFAxH1xApFCwdK6eWWBkGcOHCb-diKMM2ec1JfDpKsavEJh6N20W4inZGhTDPupsYQy-8cYAYSIb1rRYfRRIHPOfWB6ELGo7PxT59PnY7vPfwk6TF3ITHyQBSspaKhOV6niQKGWgkFxWg__'}}
+                style={styles.productImage}
+              />
+            </View>
+            <Text style={styles.productName}>Arabica Beans</Text>
+            <Text style={styles.productDescription}>Medium Roasted</Text>
+            <View style={styles.productFooter}>
+              <Text>
+              <Text style={{color:'#D17842'}}>$ </Text><Text style={styles.productPrice}>4.20</Text>
+              </Text>
+              <TouchableOpacity style={styles.addButton}>
+                <Image source={require('../assets/images/add.png')}/>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
 
-
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={[styles.productList,{marginBottom:50}]}>
-     
-      <TouchableOpacity style={styles.productCard} onPress={()=>{toggleTabBar(); navigation.navigate('Detail')}}>
-          <View style={{borderRadius:12,overflow: 'hidden',}}>
-            <Image
-              source={{uri: 'https://s3-alpha-sig.figma.com/img/0ed4/77b7/0d5052984d7848c0feaaf073901abb7d?Expires=1741564800&Key-Pair-Id=APKAQ4GOSFWCW27IBOMQ&Signature=K~m8i~CiPpb9vILExLfu74xTGwoO8hO4TLLYNFCCcBrcHiipUfuCtP~Cx8zYnQLuaNMTReWkJCJK-X1OSjgkWBMUzh7nGVCDcrClwlvz9dcnVGOGicZCb6bPdKL29l448G51DaVS5fO6MtEgAh1s4GDPHmF34Gb4NuENxBeha4~YRIQuCvYaLOqPSxJjHAIvNIYrdnrGOFFAxH1xApFCwdK6eWWBkGcOHCb-diKMM2ec1JfDpKsavEJh6N20W4inZGhTDPupsYQy-8cYAYSIb1rRYfRRIHPOfWB6ELGo7PxT59PnY7vPfwk6TF3ITHyQBSspaKhOV6niQKGWgkFxWg__'}}
-              style={styles.productImage}
-            />
-          </View>
-          <Text style={styles.productName}>Robusta Beans</Text>
-          <Text style={styles.productDescription}>Medium Roasted</Text>
-          <View style={styles.productFooter}>
-            <Text>
-            <Text style={{color:'#D17842'}}>$ </Text><Text style={styles.productPrice}>4.20</Text>
-            </Text>
-            <TouchableOpacity style={styles.addButton}>
-              <Image source={require('../assets/images/add.png')}/>
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
-
-
-
-
-        <TouchableOpacity style={styles.productCard} onPress={()=>{toggleTabBar(); navigation.navigate('Detail')}}>
-          <View style={{borderRadius:12,overflow: 'hidden',}}>
-            <Image
-              source={{uri: 'https://s3-alpha-sig.figma.com/img/0ed4/77b7/0d5052984d7848c0feaaf073901abb7d?Expires=1741564800&Key-Pair-Id=APKAQ4GOSFWCW27IBOMQ&Signature=K~m8i~CiPpb9vILExLfu74xTGwoO8hO4TLLYNFCCcBrcHiipUfuCtP~Cx8zYnQLuaNMTReWkJCJK-X1OSjgkWBMUzh7nGVCDcrClwlvz9dcnVGOGicZCb6bPdKL29l448G51DaVS5fO6MtEgAh1s4GDPHmF34Gb4NuENxBeha4~YRIQuCvYaLOqPSxJjHAIvNIYrdnrGOFFAxH1xApFCwdK6eWWBkGcOHCb-diKMM2ec1JfDpKsavEJh6N20W4inZGhTDPupsYQy-8cYAYSIb1rRYfRRIHPOfWB6ELGo7PxT59PnY7vPfwk6TF3ITHyQBSspaKhOV6niQKGWgkFxWg__'}}
-              style={styles.productImage}
-            />
-          </View>
-          <Text style={styles.productName}>Arabica Beans</Text>
-          <Text style={styles.productDescription}>Medium Roasted</Text>
-          <View style={styles.productFooter}>
-            <Text>
-            <Text style={{color:'#D17842'}}>$ </Text><Text style={styles.productPrice}>4.20</Text>
-            </Text>
-            <TouchableOpacity style={styles.addButton}>
-              <Image source={require('../assets/images/add.png')}/>
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
-
-
-
-
-        <TouchableOpacity style={styles.productCard} onPress={()=>{toggleTabBar(); navigation.navigate('Detail')}}>
-          <View style={{borderRadius:12,overflow: 'hidden',}}>
-            <Image
-              source={{uri: 'https://s3-alpha-sig.figma.com/img/0ed4/77b7/0d5052984d7848c0feaaf073901abb7d?Expires=1741564800&Key-Pair-Id=APKAQ4GOSFWCW27IBOMQ&Signature=K~m8i~CiPpb9vILExLfu74xTGwoO8hO4TLLYNFCCcBrcHiipUfuCtP~Cx8zYnQLuaNMTReWkJCJK-X1OSjgkWBMUzh7nGVCDcrClwlvz9dcnVGOGicZCb6bPdKL29l448G51DaVS5fO6MtEgAh1s4GDPHmF34Gb4NuENxBeha4~YRIQuCvYaLOqPSxJjHAIvNIYrdnrGOFFAxH1xApFCwdK6eWWBkGcOHCb-diKMM2ec1JfDpKsavEJh6N20W4inZGhTDPupsYQy-8cYAYSIb1rRYfRRIHPOfWB6ELGo7PxT59PnY7vPfwk6TF3ITHyQBSspaKhOV6niQKGWgkFxWg__'}}
-              style={styles.productImage}
-            />
-          </View>
-          <Text style={styles.productName}>Robusta Beans</Text>
-          <Text style={styles.productDescription}>Medium Roasted</Text>
-          <View style={styles.productFooter}>
-            <Text>
-            <Text style={{color:'#D17842'}}>$ </Text><Text style={styles.productPrice}>4.20</Text>
-            </Text>
-            <TouchableOpacity style={styles.addButton}>
-              <Image source={require('../assets/images/add.png')}/>
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
-
-
-
-        
-
-      
-        
-
-        
-      </ScrollView>
-        
+          <TouchableOpacity style={styles.productCard} onPress={()=>{toggleTabBar(); navigation.navigate('Detail')}}>
+            <View style={{borderRadius:12,overflow: 'hidden',}}>
+              <Image
+                source={{uri: 'https://s3-alpha-sig.figma.com/img/0ed4/77b7/0d5052984d7848c0feaaf073901abb7d?Expires=1741564800&Key-Pair-Id=APKAQ4GOSFWCW27IBOMQ&Signature=K~m8i~CiPpb9vILExLfu74xTGwoO8hO4TLLYNFCCcBrcHiipUfuCtP~Cx8zYnQLuaNMTReWkJCJK-X1OSjgkWBMUzh7nGVCDcrClwlvz9dcnVGOGicZCb6bPdKL29l448G51DaVS5fO6MtEgAh1s4GDPHmF34Gb4NuENxBeha4~YRIQuCvYaLOqPSxJjHAIvNIYrdnrGOFFAxH1xApFCwdK6eWWBkGcOHCb-diKMM2ec1JfDpKsavEJh6N20W4inZGhTDPupsYQy-8cYAYSIb1rRYfRRIHPOfWB6ELGo7PxT59PnY7vPfwk6TF3ITHyQBSspaKhOV6niQKGWgkFxWg__'}}
+                style={styles.productImage}
+              />
+            </View>
+            <Text style={styles.productName}>Robusta Beans</Text>
+            <Text style={styles.productDescription}>Medium Roasted</Text>
+            <View style={styles.productFooter}>
+              <Text>
+              <Text style={{color:'#D17842'}}>$ </Text><Text style={styles.productPrice}>4.20</Text>
+              </Text>
+              <TouchableOpacity style={styles.addButton}>
+                <Image source={require('../assets/images/add.png')}/>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </ScrollView>
       </SafeAreaView>
     </ScrollView>
   );
@@ -366,6 +396,7 @@ export default function LayoutHome() {
       <Stack.Screen name="DetailsItem" component={DetailsItem} />
       <Stack.Screen name="SettingsScreen" component={SettingsScreen} />
       <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
+      <Stack.Screen name="CafeList" component={CafeList}/>
     </Stack.Navigator>
   );
 }

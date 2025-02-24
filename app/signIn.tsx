@@ -33,7 +33,7 @@ const SignIn = ({ navigation }) => {
 
     // Kiểm tra email
     if (email.trim() === '') {
-      setEmailError('Email is required');
+      setEmailError('Username is required');
       hasError = true;
     } else {
       setEmailError('');
@@ -96,7 +96,7 @@ const SignIn = ({ navigation }) => {
       {/* Email Input */}
       <TextInput
         style={[styles.input, emailError ? styles.errorBorder : null]}
-        placeholder="Email Address"
+        placeholder="UserName"
         placeholderTextColor="#828282"
         value={email}
         onChangeText={(text) => {

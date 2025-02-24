@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import axios from 'axios';
 
-const Register= ({ navigation }) => {
+const Register = ({ navigation }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -13,10 +14,8 @@ const Register= ({ navigation }) => {
   const [passwordError, setPasswordError] = useState('');
   const [retypePasswordError, setRetypePasswordError] = useState('');
 
-
-  const handleRegister = () => {
+  const handleRegister = async () => {
     let hasError = false;
-
 
     if (name.trim() === '') {
       setNameError('Name is required');
@@ -53,16 +52,30 @@ const Register= ({ navigation }) => {
       return;
     }
 
-    Alert.alert('Success', 'Registered successfully!');
-    
+    try {
+      const response = await axios.post('https://working-tabbie-fizennn-addbb4df.koyeb.app/api/auth/register', {
+        username: name,
+        password: password,
+      });
 
-    navigation.navigate('SignInScreen');
+      if (response.data.token) {
+        Alert.alert('Success', 'Registered successfully!');
+        navigation.navigate('SignInScreen');
+      } else {
+        Alert.alert('Error', 'Registration failed. Please try again.');
+      }
+    } catch (error) {
+      console.error(error);
+      if (error.response && error.response.data && error.response.data.msg) {
+        Alert.alert('Error', error.response.data.msg);
+      } else {
+        Alert.alert('Error', 'An error occurred. Please try again.');
+      }
+    }
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      
-
       <StatusBar translucent={true} backgroundColor="transparent" style='light'/>
 
       <Image
@@ -72,7 +85,6 @@ const Register= ({ navigation }) => {
       <Text style={styles.welcome}>Welcome to Lungo</Text>
       <Text style={styles.title}>Create an Account</Text>
 
-  
       <TextInput
         style={[styles.input, nameError ? styles.errorBorder : null]}
         placeholder="Name"
@@ -85,7 +97,6 @@ const Register= ({ navigation }) => {
       />
       {nameError ? <Text style={styles.errorText}>{nameError}</Text> : null}
 
-   
       <TextInput
         style={[styles.input, emailError ? styles.errorBorder : null]}
         placeholder="Email Address"
@@ -99,7 +110,6 @@ const Register= ({ navigation }) => {
       />
       {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
 
-   
       <View style={[styles.inputContainer, passwordError ? styles.errorBorder : null]}>
         <TextInput
           style={styles.passwordInput}
@@ -116,7 +126,6 @@ const Register= ({ navigation }) => {
       </View>
       {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
 
-   
       <View style={[styles.inputContainer, retypePasswordError ? styles.errorBorder : null]}>
         <TextInput
           style={styles.passwordInput}
@@ -133,12 +142,10 @@ const Register= ({ navigation }) => {
       </View>
       {retypePasswordError ? <Text style={styles.errorText}>{retypePasswordError}</Text> : null}
 
-     
       <TouchableOpacity style={styles.button} onPress={handleRegister}>
         <Text style={styles.buttonText}>Register</Text>
       </TouchableOpacity>
 
-      
       <View style={[styles.signupContainer, { marginTop: 5 }]}>
         <Text style={styles.text}>You have an account? Click</Text>
         <TouchableOpacity>
